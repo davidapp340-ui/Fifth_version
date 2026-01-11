@@ -19,7 +19,7 @@ export interface LibraryItemWithExercise extends LibraryItem {
   exercise: {
     id: string;
     animation_id: string;
-    icon_id: string;
+    icon_id: string | null;
     audio_path_en: string | null;
     audio_path_he: string | null;
     title_en: string;
