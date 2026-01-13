@@ -1,27 +1,347 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { Map } from 'lucide-react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter, useFocusEffect } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing
+} from 'react-native-reanimated';
+import { Check, Lock, Star, Gift } from 'lucide-react-native';
+import { useChildSession } from '@/contexts/ChildSessionContext';
+import { supabase } from '@/lib/supabase';
+import { Database } from '@/lib/database.types';
+import React from 'react';
+
+type DailyPlan = Database['public']['Tables']['daily_plans']['Row'];
+type Child = Database['public']['Tables']['children']['Row'];
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const NODE_SIZE = 60;
+const PATH_WIDTH = SCREEN_WIDTH - 80;
+
+const THEME_BACKGROUNDS = {
+  forest: ['#1E3A20', '#2D5016', '#4A7C59'],
+  ocean: ['#0C2D48', '#145DA0', '#2E8BC0'],
+  desert: ['#8B4513', '#CD853F', '#DEB887'],
+  mountain: ['#4A5568', '#718096', '#A0AEC0'],
+};
 
 export default function PathScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const { child } = useChildSession();
+  const [childData, setChildData] = useState<Child | null>(null);
+  const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [claimingTreasure, setClaimingTreasure] = useState(false);
+
+  const fetchData = async () => {
+    if (!child?.id) return;
+
+    try {
+      setLoading(true);
+
+      const { data: childInfo, error: childError } = await supabase
+        .from('children')
+        .select('*')
+        .eq('id', child.id)
+        .single();
+
+      if (childError) throw childError;
+      setChildData(childInfo);
+
+      const { data: plans, error: plansError } = await supabase
+        .from('daily_plans')
+        .select('*')
+        .eq('track_level', childInfo.track_level)
+        .order('day_number', { ascending: true });
+
+      if (plansError) throw plansError;
+      setDailyPlans(plans || []);
+    } catch (error) {
+      console.error('Error fetching path data:', error);
+      Alert.alert(t('common.error'), t('common.error_loading_data'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [child?.id])
+  );
+
+  const handleNodePress = async (day: number, plan: DailyPlan | undefined) => {
+    if (!childData || !plan) return;
+
+    if (day !== childData.path_day) {
+      return;
+    }
+
+    const isRestDay = [7, 14, 21, 28].includes(day);
+
+    if (isRestDay) {
+      await handleClaimTreasure();
+    } else {
+      router.push({
+        pathname: '/exercise-player',
+        params: { planId: plan.id }
+      });
+    }
+  };
+
+  const handleClaimTreasure = async () => {
+    if (!child?.id || claimingTreasure) return;
+
+    try {
+      setClaimingTreasure(true);
+
+      const { data, error } = await supabase.rpc('claim_treasure_bonus', {
+        p_child_id: child.id
+      });
+
+      if (error) throw error;
+
+      if (data && typeof data === 'object' && 'success' in data) {
+        if (data.success) {
+          Alert.alert(
+            '🎉 ' + t('path.treasure_claimed'),
+            t('path.treasure_points', { points: data.points_earned || 50 }),
+            [{ text: t('common.ok'), onPress: fetchData }]
+          );
+        } else {
+          Alert.alert(t('common.error'), data.error || t('path.treasure_error'));
+        }
+      }
+    } catch (error) {
+      console.error('Error claiming treasure:', error);
+      Alert.alert(t('common.error'), t('path.treasure_error'));
+    } finally {
+      setClaimingTreasure(false);
+    }
+  };
+
+  const getNodePosition = (index: number) => {
+    const row = Math.floor(index / 5);
+    const col = index % 5;
+    const isEvenRow = row % 2 === 0;
+
+    const x = isEvenRow ? col * (PATH_WIDTH / 4) : (4 - col) * (PATH_WIDTH / 4);
+    const y = row * 100;
+
+    return { x, y };
+  };
+
+  const renderNode = (day: number, index: number) => {
+    if (!childData) return null;
+
+    const plan = dailyPlans.find(p => p.day_number === day);
+    const position = getNodePosition(index);
+    const isRestDay = [7, 14, 21, 28].includes(day);
+    const isPast = day < childData.path_day;
+    const isCurrent = day === childData.path_day;
+    const isFuture = day > childData.path_day;
+
+    return (
+      <TouchableOpacity
+        key={day}
+        style={[
+          styles.nodeContainer,
+          {
+            left: position.x,
+            top: position.y,
+          }
+        ]}
+        onPress={() => handleNodePress(day, plan)}
+        disabled={!isCurrent}
+        activeOpacity={isCurrent ? 0.7 : 1}
+      >
+        {isCurrent && !isRestDay && (
+          <View style={styles.avatarContainer}>
+            <Star size={32} color="#FFD700" fill="#FFD700" />
+          </View>
+        )}
+
+        {isRestDay ? (
+          <TreasureNode
+            isPast={isPast}
+            isCurrent={isCurrent}
+            isFuture={isFuture}
+          />
+        ) : (
+          <DayNode
+            day={day}
+            isPast={isPast}
+            isCurrent={isCurrent}
+            isFuture={isFuture}
+            title={plan?.title}
+          />
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading || !childData) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  const themeColors = (THEME_BACKGROUNDS[childData.path_theme_id as keyof typeof THEME_BACKGROUNDS] || THEME_BACKGROUNDS.forest) as [string, string, string];
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('child_navigation.path_screen.title')}</Text>
-      </View>
+      <LinearGradient
+        colors={themeColors}
+        style={StyleSheet.absoluteFill}
+      />
 
-      <View style={styles.content}>
-        <View style={styles.constructionCard}>
-          <Map size={64} color="#10B981" />
-          <Text style={styles.constructionTitle}>
-            {t('child_navigation.path_screen.construction_title')}
-          </Text>
-          <Text style={styles.constructionMessage}>
-            {t('child_navigation.path_screen.construction_message')}
-          </Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('path.title', { defaultValue: 'Your Journey' })}</Text>
+        <View style={styles.statsContainer}>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>{t('path.day')}</Text>
+            <Text style={styles.statValue}>{childData.path_day}/30</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>{t('path.streak')}</Text>
+            <Text style={styles.statValue}>🔥 {childData.current_streak}</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statLabel}>{t('path.points')}</Text>
+            <Text style={styles.statValue}>⭐ {childData.total_points}</Text>
+          </View>
         </View>
       </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.pathContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.pathWrapper}>
+          {Array.from({ length: 30 }, (_, i) => i + 1).map((day, index) =>
+            renderNode(day, index)
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function DayNode({
+  day,
+  isPast,
+  isCurrent,
+  isFuture,
+  title
+}: {
+  day: number;
+  isPast: boolean;
+  isCurrent: boolean;
+  isFuture: boolean;
+  title?: string;
+}) {
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (isCurrent) {
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1.1, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 800, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        false
+      );
+    }
+  }, [isCurrent]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <View style={styles.nodeWrapper}>
+      <Animated.View
+        style={[
+          styles.node,
+          isPast && styles.nodePast,
+          isCurrent && styles.nodeCurrent,
+          isFuture && styles.nodeFuture,
+          isCurrent && animatedStyle,
+        ]}
+      >
+        {isPast && <Check size={24} color="#FFFFFF" strokeWidth={3} />}
+        {isCurrent && <Text style={styles.nodeTextCurrent}>{day}</Text>}
+        {isFuture && <Lock size={20} color="#9CA3AF" />}
+      </Animated.View>
+      {title && isCurrent && (
+        <Text style={styles.nodeTitle} numberOfLines={2}>
+          {title}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function TreasureNode({
+  isPast,
+  isCurrent,
+  isFuture
+}: {
+  isPast: boolean;
+  isCurrent: boolean;
+  isFuture: boolean;
+}) {
+  const rotation = useSharedValue(0);
+
+  useEffect(() => {
+    if (isCurrent) {
+      rotation.value = withRepeat(
+        withSequence(
+          withTiming(-10, { duration: 200 }),
+          withTiming(10, { duration: 400 }),
+          withTiming(0, { duration: 200 })
+        ),
+        -1,
+        false
+      );
+    }
+  }, [isCurrent]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  return (
+    <View style={styles.nodeWrapper}>
+      <Animated.View
+        style={[
+          styles.treasureNode,
+          isPast && styles.treasurePast,
+          isCurrent && styles.treasureCurrent,
+          isFuture && styles.treasureFuture,
+          isCurrent && animatedStyle,
+        ]}
+      >
+        <Gift
+          size={32}
+          color={isFuture ? '#9CA3AF' : '#FFD700'}
+          fill={isPast ? '#FFD700' : 'none'}
+        />
+      </Animated.View>
+      {isCurrent && (
+        <Text style={styles.treasureLabel}>Tap to open!</Text>
+      )}
     </View>
   );
 }
@@ -29,47 +349,145 @@ export default function PathScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
   header: {
-    padding: 20,
     paddingTop: 60,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#10B981',
+    color: '#FFFFFF',
+    marginBottom: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  content: {
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statBox: {
     flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-  },
-  constructionCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 48,
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 12,
+    borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
   },
-  constructionTitle: {
+  statLabel: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    opacity: 0.9,
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  pathContainer: {
+    padding: 20,
+    paddingBottom: 100,
+  },
+  pathWrapper: {
+    position: 'relative',
+    height: 620,
+    width: PATH_WIDTH,
+    alignSelf: 'center',
+  },
+  nodeContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  nodeWrapper: {
+    alignItems: 'center',
+    width: NODE_SIZE + 40,
+  },
+  avatarContainer: {
+    position: 'absolute',
+    top: -40,
+    zIndex: 10,
+  },
+  node: {
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    borderRadius: NODE_SIZE / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+  },
+  nodePast: {
+    backgroundColor: '#10B981',
+    borderColor: '#059669',
+  },
+  nodeCurrent: {
+    backgroundColor: '#FFD700',
+    borderColor: '#FFA500',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  nodeFuture: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#D1D5DB',
+  },
+  nodeTextCurrent: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#111827',
-    marginTop: 16,
-    marginBottom: 8,
+    color: '#1F2937',
   },
-  constructionMessage: {
-    fontSize: 16,
+  nodeTitle: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontWeight: '600',
+    maxWidth: 80,
+  },
+  treasureNode: {
+    width: NODE_SIZE,
+    height: NODE_SIZE,
+    borderRadius: NODE_SIZE / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+  },
+  treasurePast: {
+    backgroundColor: '#10B981',
+    borderColor: '#059669',
+  },
+  treasureCurrent: {
+    backgroundColor: '#FFD700',
+    borderColor: '#FFA500',
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  treasureFuture: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#D1D5DB',
+  },
+  treasureLabel: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#FFD700',
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  loadingText: {
+    fontSize: 18,
     color: '#6B7280',
     textAlign: 'center',
-    lineHeight: 24,
+    marginTop: 100,
   },
 });

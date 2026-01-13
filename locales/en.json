@@ -9,7 +9,9 @@
     "edit": "Edit",
     "loading": "Loading...",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "ok": "OK",
+    "error_loading_data": "Failed to load data. Please try again."
   },
   "role_selection": {
     "title": "Zoomi",
@@ -161,6 +163,15 @@
       "construction_title": "Under Construction",
       "construction_message": "Track your progress here soon!"
     }
+  },
+  "path": {
+    "title": "Your Journey",
+    "day": "Day",
+    "streak": "Streak",
+    "points": "Points",
+    "treasure_claimed": "Treasure Claimed!",
+    "treasure_points": "You earned {{points}} bonus points!",
+    "treasure_error": "Failed to claim treasure. Please try again."
   },
   "child_profile": {
     "title": "Profile",

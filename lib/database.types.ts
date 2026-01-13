@@ -469,6 +469,17 @@ export interface Database {
           error: string | null
         }
       }
+      claim_treasure_bonus: {
+        Args: {
+          p_child_id: string
+        }
+        Returns: {
+          success: boolean
+          error: string | null
+          child: Database['public']['Tables']['children']['Row'] | null
+          points_earned?: number
+        }
+      }
     }
     Enums: {}
   }

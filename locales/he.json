@@ -9,7 +9,9 @@
     "edit": "ערוך",
     "loading": "טוען...",
     "error": "שגיאה",
-    "success": "הצלחה"
+    "success": "הצלחה",
+    "ok": "אישור",
+    "error_loading_data": "נכשל בטעינת הנתונים. אנא נסה שוב."
   },
   "role_selection": {
     "title": "Zoomi",
@@ -161,6 +163,15 @@
       "construction_title": "בבנייה",
       "construction_message": "עקוב אחר ההתקדמות שלך בקרוב!"
     }
+  },
+  "path": {
+    "title": "המסע שלך",
+    "day": "יום",
+    "streak": "רצף",
+    "points": "נקודות",
+    "treasure_claimed": "אוצר נאסף!",
+    "treasure_points": "הרווחת {{points}} נקודות בונוס!",
+    "treasure_error": "נכשל באיסוף האוצר. אנא נסה שוב."
   },
   "child_profile": {
     "title": "פרופיל",
