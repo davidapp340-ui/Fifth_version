@@ -171,7 +171,9 @@
     "points": "נקודות",
     "treasure_claimed": "אוצר נאסף!",
     "treasure_points": "הרווחת {{points}} נקודות בונוס!",
-    "treasure_error": "נכשל באיסוף האוצר. אנא נסה שוב."
+    "treasure_error": "נכשל באיסוף האוצר. אנא נסה שוב.",
+    "coming_soon_title": "בקרוב",
+    "coming_soon_message": "תרגילים ליום זה עדיין לא זמינים. חזור בקרוב!"
   },
   "child_profile": {
     "title": "פרופיל",

@@ -78,9 +78,17 @@ export default function PathScreen() {
   );
 
   const handleNodePress = async (day: number, plan: DailyPlan | undefined) => {
-    if (!childData || !plan) return;
+    if (!childData) return;
 
     if (day !== childData.path_day) {
+      return;
+    }
+
+    if (!plan) {
+      Alert.alert(
+        t('path.coming_soon_title', { defaultValue: 'Coming Soon' }),
+        t('path.coming_soon_message', { defaultValue: 'This day\'s exercises are not available yet. Check back soon!' })
+      );
       return;
     }
 
