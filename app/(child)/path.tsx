@@ -41,7 +41,10 @@ export default function PathScreen() {
   const [claimingTreasure, setClaimingTreasure] = useState(false);
 
   const fetchData = async () => {
-    if (!child?.id) return;
+    if (!child?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
