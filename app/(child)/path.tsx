@@ -35,39 +35,31 @@ export default function PathScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { child, loading: sessionLoading } = useChildSession();
-  const [childData, setChildData] = useState<Child | null>(null);
   const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
   const [dataLoading, setDataLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [claimingTreasure, setClaimingTreasure] = useState(false);
 
   const fetchData = async () => {
-    if (!child?.id) {
+    if (!child?.id || !child?.track_level) {
       return;
     }
 
     try {
       setDataLoading(true);
-
-      const { data: childInfo, error: childError } = await supabase
-        .from('children')
-        .select('*')
-        .eq('id', child.id)
-        .single();
-
-      if (childError) throw childError;
-      setChildData(childInfo);
+      setLoadError(false);
 
       const { data: plans, error: plansError } = await supabase
         .from('daily_plans')
         .select('*')
-        .eq('track_level', childInfo.track_level)
+        .eq('track_level', child.track_level)
         .order('day_number', { ascending: true });
 
       if (plansError) throw plansError;
       setDailyPlans(plans || []);
     } catch (error) {
       console.error('Error fetching path data:', error);
-      Alert.alert(t('common.error'), t('common.error_loading_data'));
+      setLoadError(true);
     } finally {
       setDataLoading(false);
     }
@@ -82,9 +74,9 @@ export default function PathScreen() {
   );
 
   const handleNodePress = async (day: number, plan: DailyPlan | undefined) => {
-    if (!childData) return;
+    if (!child) return;
 
-    if (day !== childData.path_day) {
+    if (day !== child.path_day) {
       return;
     }
 
@@ -151,14 +143,14 @@ export default function PathScreen() {
   };
 
   const renderNode = (day: number, index: number) => {
-    if (!childData) return null;
+    if (!child) return null;
 
     const plan = dailyPlans.find(p => p.day_number === day);
     const position = getNodePosition(index);
     const isRestDay = [7, 14, 21, 28].includes(day);
-    const isPast = day < childData.path_day;
-    const isCurrent = day === childData.path_day;
-    const isFuture = day > childData.path_day;
+    const isPast = day < child.path_day;
+    const isCurrent = day === child.path_day;
+    const isFuture = day > child.path_day;
 
     return (
       <TouchableOpacity
@@ -223,15 +215,23 @@ export default function PathScreen() {
     );
   }
 
-  if (!childData) {
+  if (loadError) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>{t('common.error_loading_data')}</Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{t('common.error_loading_data')}</Text>
+          <TouchableOpacity
+            style={styles.errorButton}
+            onPress={fetchData}
+          >
+            <Text style={styles.errorButtonText}>{t('common.retry', { defaultValue: 'Retry' })}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
 
-  const themeColors = (THEME_BACKGROUNDS[childData.path_theme_id as keyof typeof THEME_BACKGROUNDS] || THEME_BACKGROUNDS.forest) as [string, string, string];
+  const themeColors = (THEME_BACKGROUNDS[child.path_theme_id as keyof typeof THEME_BACKGROUNDS] || THEME_BACKGROUNDS.forest) as [string, string, string];
 
   return (
     <View style={styles.container}>
@@ -245,15 +245,15 @@ export default function PathScreen() {
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>{t('path.day')}</Text>
-            <Text style={styles.statValue}>{childData.path_day}/30</Text>
+            <Text style={styles.statValue}>{child.path_day}/30</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>{t('path.streak')}</Text>
-            <Text style={styles.statValue}>🔥 {childData.current_streak}</Text>
+            <Text style={styles.statValue}>🔥 {child.current_streak}</Text>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>{t('path.points')}</Text>
-            <Text style={styles.statValue}>⭐ {childData.total_points}</Text>
+            <Text style={styles.statValue}>⭐ {child.total_points}</Text>
           </View>
         </View>
       </View>
