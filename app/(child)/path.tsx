@@ -34,20 +34,19 @@ const THEME_BACKGROUNDS = {
 export default function PathScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { child } = useChildSession();
+  const { child, loading: sessionLoading } = useChildSession();
   const [childData, setChildData] = useState<Child | null>(null);
   const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
   const [claimingTreasure, setClaimingTreasure] = useState(false);
 
   const fetchData = async () => {
     if (!child?.id) {
-      setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
+      setDataLoading(true);
 
       const { data: childInfo, error: childError } = await supabase
         .from('children')
@@ -70,13 +69,15 @@ export default function PathScreen() {
       console.error('Error fetching path data:', error);
       Alert.alert(t('common.error'), t('common.error_loading_data'));
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchData();
+      if (child?.id) {
+        fetchData();
+      }
     }, [child?.id])
   );
 
@@ -198,10 +199,34 @@ export default function PathScreen() {
     );
   };
 
-  if (loading || !childData) {
+  if (sessionLoading || dataLoading) {
     return (
       <View style={styles.container}>
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  if (!child) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{t('common.session_error', { defaultValue: 'Session error. Please log in again.' })}</Text>
+          <TouchableOpacity
+            style={styles.errorButton}
+            onPress={() => router.replace('/child-login')}
+          >
+            <Text style={styles.errorButtonText}>{t('common.go_to_login', { defaultValue: 'Go to Login' })}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  if (!childData) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>{t('common.error_loading_data')}</Text>
       </View>
     );
   }
@@ -500,5 +525,28 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     marginTop: 100,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#DC2626',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  errorButton: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  errorButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
