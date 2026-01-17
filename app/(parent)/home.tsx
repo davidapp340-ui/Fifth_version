@@ -16,18 +16,19 @@ import { Plus, User, Link, Copy } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useTranslation } from 'react-i18next';
 import AddChildWizard from '@/components/AddChildWizard';
+import { useLinkingCode } from '@/hooks/useLinkingCode';
 
 type Child = Database['public']['Tables']['children']['Row'];
 
 export default function ParentHomeScreen() {
   const { profile } = useAuth();
   const { t } = useTranslation();
+  const { generateCode, loading: generatingCode } = useLinkingCode();
   const [children, setChildren] = useState<Child[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardVisible, setWizardVisible] = useState(false);
   const [codeModalVisible, setCodeModalVisible] = useState(false);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
-  const [generatingCode, setGeneratingCode] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -57,59 +58,19 @@ export default function ParentHomeScreen() {
   };
 
   const handleGenerateCode = async (child: Child) => {
-    setGeneratingCode(true);
-    try {
-      const { data, error } = await supabase.rpc('generate_linking_code', {
-        child_id_param: child.id,
-      });
+    const result = await generateCode(child);
 
-      if (error) {
-        console.error('RPC error:', error);
-
-        const errorCode = error.code;
-        const errorDetails = error.details;
-        const errorHint = error.hint;
-
-        if (errorCode === 'PGRST301' || errorCode === '42501') {
-          Alert.alert(t('common.error'), t('parent_home.code_generation_errors.unauthorized'));
-        } else if (errorCode === 'P0001') {
-          if (errorDetails && errorDetails.includes('not found')) {
-            Alert.alert(t('common.error'), t('parent_home.code_generation_errors.child_not_found'));
-          } else if (errorDetails && errorDetails.includes('unique code')) {
-            Alert.alert(t('common.error'), t('parent_home.code_generation_errors.system_busy'));
-          } else {
-            Alert.alert(t('common.error'), t('parent_home.code_generation_errors.generic_error'));
-          }
-        } else {
-          Alert.alert(t('common.error'), t('parent_home.code_generation_errors.generic_error'));
-        }
-        return;
-      }
-
-      if (!data || !data.success) {
-        console.error('RPC returned unsuccessful response:', data);
-        Alert.alert(t('common.error'), t('parent_home.code_generation_errors.generic_error'));
-        return;
-      }
-
-      const updatedChild: Child = {
-        ...child,
-        linking_code: data.code,
-        linking_code_expires_at: data.expires_at,
-      };
-
-      setChildren((prevChildren) =>
-        prevChildren.map((c) => (c.id === child.id ? updatedChild : c))
-      );
-
-      setSelectedChild(updatedChild);
-      setCodeModalVisible(true);
-    } catch (error: any) {
-      console.error('Unexpected error generating code:', error);
-      Alert.alert(t('common.error'), t('parent_home.code_generation_errors.generic_error'));
-    } finally {
-      setGeneratingCode(false);
+    if (!result.success || !result.child) {
+      Alert.alert(t('common.error'), result.error || t('parent_home.code_generation_errors.generic_error'));
+      return;
     }
+
+    setChildren((prevChildren) =>
+      prevChildren.map((c) => (c.id === child.id ? result.child! : c))
+    );
+
+    setSelectedChild(result.child);
+    setCodeModalVisible(true);
   };
 
   const copyToClipboard = async (text: string) => {
