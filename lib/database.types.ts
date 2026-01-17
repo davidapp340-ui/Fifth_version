@@ -412,6 +412,39 @@ export interface Database {
           }
         ]
       }
+      legal_documents: {
+        Row: {
+          id: string
+          type: string
+          title_en: string
+          title_he: string
+          content_en: string
+          content_he: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          type: string
+          title_en: string
+          title_he: string
+          content_en: string
+          content_he: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          type?: string
+          title_en?: string
+          title_he?: string
+          content_en?: string
+          content_he?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {}
     Functions: {

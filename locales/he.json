@@ -96,6 +96,12 @@
       },
       "success": {
         "profile_created": "הפרופיל נוצר בהצלחה!"
+      },
+      "policy_modal": {
+        "view_policy": "צפה במדיניות",
+        "loading": "טוען מדיניות...",
+        "error": "טעינת מסמך המדיניות נכשלה",
+        "close_button": "סגור"
       }
     },
     "add_child_modal": {

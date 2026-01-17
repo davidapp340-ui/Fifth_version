@@ -96,6 +96,12 @@
       },
       "success": {
         "profile_created": "Profile created successfully!"
+      },
+      "policy_modal": {
+        "view_policy": "View Policy",
+        "loading": "Loading policy...",
+        "error": "Failed to load policy document",
+        "close_button": "Close"
       }
     },
     "add_child_modal": {

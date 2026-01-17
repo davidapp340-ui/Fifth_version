@@ -9,11 +9,13 @@ import {
   ScrollView,
   Switch,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { X, Calendar } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
+import { fetchLegalDocument } from '@/lib/legal';
 
 interface AddChildWizardProps {
   visible: boolean;
@@ -47,6 +49,10 @@ export default function AddChildWizard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [policyModalVisible, setPolicyModalVisible] = useState(false);
+  const [policyLoading, setPolicyLoading] = useState(false);
+  const [policyContent, setPolicyContent] = useState<{ title: string; content: string } | null>(null);
+  const [policyError, setPolicyError] = useState('');
 
   const [step1Data, setStep1Data] = useState<Step1Data>({
     name: '',
@@ -158,6 +164,23 @@ export default function AddChildWizard({
     }
 
     return true;
+  };
+
+  const handleViewPolicy = async () => {
+    setPolicyModalVisible(true);
+    setPolicyLoading(true);
+    setPolicyError('');
+    setPolicyContent(null);
+
+    const document = await fetchLegalDocument('privacy_policy');
+
+    if (!document) {
+      setPolicyError(t('parent_home.add_child_wizard.policy_modal.error'));
+    } else {
+      setPolicyContent(document);
+    }
+
+    setPolicyLoading(false);
   };
 
   const handleCreate = async () => {
@@ -438,20 +461,26 @@ export default function AddChildWizard({
         </Text>
       </View>
 
-      <TouchableOpacity
-        style={styles.consentRow}
-        onPress={() => setStep2Data({ ...step2Data, consent: !step2Data.consent })}
-      >
-        <View style={[styles.checkbox, step2Data.consent && styles.checkboxChecked]}>
-          {step2Data.consent && <View style={styles.checkboxInner} />}
-        </View>
-        <Text style={styles.consentText}>
-          {t('parent_home.add_child_wizard.step2.consent_text')}{' '}
-          <Text style={styles.linkText}>
-            {t('parent_home.add_child_wizard.step2.terms_link')}
+      <View style={styles.consentRow}>
+        <TouchableOpacity
+          style={styles.checkboxTouchable}
+          onPress={() => setStep2Data({ ...step2Data, consent: !step2Data.consent })}
+        >
+          <View style={[styles.checkbox, step2Data.consent && styles.checkboxChecked]}>
+            {step2Data.consent && <View style={styles.checkboxInner} />}
+          </View>
+        </TouchableOpacity>
+        <View style={styles.consentTextContainer}>
+          <Text style={styles.consentText}>
+            {t('parent_home.add_child_wizard.step2.consent_text')}{' '}
           </Text>
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity onPress={handleViewPolicy}>
+            <Text style={styles.linkText}>
+              {t('parent_home.add_child_wizard.policy_modal.view_policy')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -498,6 +527,53 @@ export default function AddChildWizard({
           {currentStep === 1 ? renderStep1() : renderStep2()}
         </View>
       </View>
+
+      <Modal
+        visible={policyModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setPolicyModalVisible(false)}
+      >
+        <View style={styles.policyModalOverlay}>
+          <View style={styles.policyModalContent}>
+            <View style={styles.policyModalHeader}>
+              <Text style={styles.policyModalTitle}>
+                {policyContent?.title || t('parent_home.add_child_wizard.policy_modal.view_policy')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setPolicyModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <X size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.policyScrollView} showsVerticalScrollIndicator={true}>
+              {policyLoading ? (
+                <View style={styles.policyLoadingContainer}>
+                  <ActivityIndicator size="large" color="#6366F1" />
+                  <Text style={styles.policyLoadingText}>
+                    {t('parent_home.add_child_wizard.policy_modal.loading')}
+                  </Text>
+                </View>
+              ) : policyError ? (
+                <Text style={styles.policyErrorText}>{policyError}</Text>
+              ) : (
+                <Text style={styles.policyText}>{policyContent?.content}</Text>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.policyCloseButton}
+              onPress={() => setPolicyModalVisible(false)}
+            >
+              <Text style={styles.primaryButtonText}>
+                {t('parent_home.add_child_wizard.policy_modal.close_button')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </Modal>
   );
 }
@@ -616,13 +692,15 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 24,
   },
+  checkboxTouchable: {
+    padding: 2,
+  },
   checkbox: {
     width: 20,
     height: 20,
     borderWidth: 2,
     borderColor: '#D1D5DB',
     borderRadius: 4,
-    marginTop: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -636,15 +714,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 2,
   },
-  consentText: {
+  consentTextContainer: {
     flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+  },
+  consentText: {
     fontSize: 14,
     color: '#374151',
     lineHeight: 20,
   },
   linkText: {
+    fontSize: 14,
     color: '#6366F1',
     textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   errorText: {
     color: '#EF4444',
@@ -717,5 +802,68 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  policyModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  policyModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 600,
+    maxHeight: '90%',
+    overflow: 'hidden',
+  },
+  policyModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  policyModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    flex: 1,
+  },
+  policyScrollView: {
+    flex: 1,
+    padding: 20,
+  },
+  policyLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  policyLoadingText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  policyText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: '#374151',
+  },
+  policyErrorText: {
+    fontSize: 14,
+    color: '#EF4444',
+    textAlign: 'center',
+    paddingVertical: 40,
+  },
+  policyCloseButton: {
+    backgroundColor: '#6366F1',
+    padding: 16,
+    margin: 20,
+    marginTop: 0,
+    borderRadius: 8,
+    alignItems: 'center',
   },
 });
