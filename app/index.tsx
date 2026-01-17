@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,26 +8,33 @@ export default function SplashScreen() {
   const router = useRouter();
   const { loading: authLoading, profile } = useAuth();
   const { loading: childLoading, child } = useChildSession();
+  const [isSplashReady, setIsSplashReady] = useState(false);
 
   const loading = authLoading || childLoading;
   const isParent = !!profile;
   const isChild = !!child;
 
+  // Start minimum splash timer on mount (runs in parallel with data loading)
   useEffect(() => {
-    if (!loading) {
-      const timer = setTimeout(() => {
-        if (isParent) {
-          router.replace('/(parent)/home');
-        } else if (isChild) {
-          router.replace('/(child)/home');
-        } else {
-          router.replace('/role-selection');
-        }
-      }, 3000);
+    const timer = setTimeout(() => {
+      setIsSplashReady(true);
+    }, 2500);
 
-      return () => clearTimeout(timer);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Navigate when BOTH conditions are met: data loaded AND minimum time elapsed
+  useEffect(() => {
+    if (!loading && isSplashReady) {
+      if (isParent) {
+        router.replace('/(parent)/home');
+      } else if (isChild) {
+        router.replace('/(child)/home');
+      } else {
+        router.replace('/role-selection');
+      }
     }
-  }, [loading, isParent, isChild]);
+  }, [loading, isSplashReady, isParent, isChild, router]);
 
   return (
     <View style={styles.container}>
