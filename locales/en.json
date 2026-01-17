@@ -140,6 +140,12 @@
   "child_home": {
     "title": "Zoomi",
     "welcome": "Welcome, {{childName}}!",
+    "stats": {
+      "points": "Points",
+      "streak": "Day Streak",
+      "day_value": "Day {{day}}",
+      "day_label": "Journey"
+    },
     "ready_workout_title": "Ready to Workout!",
     "ready_workout_text": "Your workout programs will appear here. Stay tuned for exciting training sessions!",
     "coming_soon_title": "Coming Soon:",

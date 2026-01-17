@@ -140,6 +140,12 @@
   "child_home": {
     "title": "Zoomi",
     "welcome": "שלום, {{childName}}!",
+    "stats": {
+      "points": "נקודות",
+      "streak": "רצף ימים",
+      "day_value": "יום {{day}}",
+      "day_label": "מסע"
+    },
     "ready_workout_title": "מוכן לאימון!",
     "ready_workout_text": "תוכניות האימון שלך יופיעו כאן. הישאר מעודכן לסשנים מרגשים!",
     "coming_soon_title": "בקרוב:",
