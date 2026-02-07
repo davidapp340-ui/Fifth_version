@@ -1,0 +1,273 @@
+import { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { Globe, LogOut, User } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
+
+export default function IndependentSettingsScreen() {
+  const router = useRouter();
+  const { profile, signOut } = useAuth();
+  const { t, i18n } = useTranslation();
+  const [loading, setLoading] = useState(false);
+
+  const getInitials = (firstName: string, lastName: string): string => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || '';
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || '';
+    return `${firstInitial}${lastInitial}`;
+  };
+
+  const handleLanguageChange = async () => {
+    const newLang = i18n.language === 'en' ? 'he' : 'en';
+    await i18n.changeLanguage(newLang);
+  };
+
+  const handleSignOut = async () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await signOut();
+              router.replace('/');
+            } catch (error) {
+              console.error('Error signing out:', error);
+              Alert.alert('Error', 'Failed to sign out');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Settings</Text>
+      </View>
+
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Profile</Text>
+          <View style={styles.profileCard}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {getInitials(profile?.first_name || '', profile?.last_name || '')}
+              </Text>
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>
+                {profile?.first_name} {profile?.last_name}
+              </Text>
+              <Text style={styles.profileEmail}>{profile?.email}</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Independent User</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleLanguageChange}>
+            <View style={styles.settingLeft}>
+              <View style={styles.settingIcon}>
+                <Globe size={24} color="#F59E0B" />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>Language</Text>
+                <Text style={styles.settingSubtitle}>
+                  Current: {i18n.language === 'en' ? 'English' : 'עברית'}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={handleSignOut}
+            disabled={loading}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, styles.dangerIcon]}>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <LogOut size={24} color="#EF4444" />
+                )}
+              </View>
+              <View>
+                <Text style={[styles.settingTitle, styles.dangerText]}>Sign Out</Text>
+                <Text style={styles.settingSubtitle}>
+                  Sign out of your account
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Zoomi Vision Training</Text>
+          <Text style={styles.footerSubtext}>Version 1.0.0</Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  header: {
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#F59E0B',
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 20,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  profileCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#F59E0B',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  avatarText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  profileEmail: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 8,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#F59E0B',
+  },
+  settingItem: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  settingIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  dangerIcon: {
+    backgroundColor: '#FEE2E2',
+  },
+  settingTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 2,
+  },
+  dangerText: {
+    color: '#EF4444',
+  },
+  settingSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  footerText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  footerSubtext: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+});

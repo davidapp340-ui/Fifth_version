@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Users, Baby } from 'lucide-react-native';
+import { Users, Baby, User } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function RoleSelectionScreen() {
@@ -20,6 +20,15 @@ export default function RoleSelectionScreen() {
           <Users size={48} color="#FFFFFF" />
           <Text style={styles.buttonText}>{t('role_selection.parent_button')}</Text>
           <Text style={styles.buttonSubtext}>{t('role_selection.parent_subtitle')}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.independentButton]}
+          onPress={() => router.push({ pathname: '/parent-auth', params: { defaultRole: 'independent' } })}
+        >
+          <User size={48} color="#FFFFFF" />
+          <Text style={styles.buttonText}>Independent User</Text>
+          <Text style={styles.buttonSubtext}>Train on your own</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -71,6 +80,9 @@ const styles = StyleSheet.create({
   },
   parentButton: {
     backgroundColor: '#4F46E5',
+  },
+  independentButton: {
+    backgroundColor: '#F59E0B',
   },
   childButton: {
     backgroundColor: '#10B981',

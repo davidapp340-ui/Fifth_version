@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/lib/database.types';
+import { useAuth } from './AuthContext';
 
 type Child = Database['public']['Tables']['children']['Row'];
 
@@ -19,25 +20,40 @@ const DEVICE_ID_KEY = '@zoomi_device_id';
 export function ChildSessionProvider({ children }: { children: React.ReactNode }) {
   const [child, setChild] = useState<Child | null>(null);
   const [loading, setLoading] = useState(true);
+  const { user, profile } = useAuth();
 
   useEffect(() => {
     checkChildSession();
-  }, []);
+  }, [user, profile]);
 
   const checkChildSession = async () => {
     try {
-      const deviceId = await AsyncStorage.getItem(DEVICE_ID_KEY);
-      if (deviceId) {
-        const { data, error } = await supabase.rpc('get_child_session', {
-          p_device_id: deviceId,
-        });
+      if (profile?.role === 'independent' && user) {
+        const { data, error } = await supabase
+          .from('children')
+          .select('*')
+          .eq('auth_user_id', user.id)
+          .maybeSingle();
 
         if (error) throw error;
 
-        if (data && data.success && data.child) {
-          setChild(data.child);
-        } else {
-          await AsyncStorage.removeItem(DEVICE_ID_KEY);
+        if (data) {
+          setChild(data);
+        }
+      } else {
+        const deviceId = await AsyncStorage.getItem(DEVICE_ID_KEY);
+        if (deviceId) {
+          const { data, error } = await supabase.rpc('get_child_session', {
+            p_device_id: deviceId,
+          });
+
+          if (error) throw error;
+
+          if (data && data.success && data.child) {
+            setChild(data.child);
+          } else {
+            await AsyncStorage.removeItem(DEVICE_ID_KEY);
+          }
         }
       }
     } catch (error) {
