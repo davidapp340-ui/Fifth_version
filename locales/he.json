@@ -168,7 +168,11 @@
     "library_screen": {
       "title": "גלריית תרגילים",
       "construction_title": "בבנייה",
-      "construction_message": "תוכן תרגילים מרגש בקרוב!"
+      "construction_message": "תוכן תרגילים מרגש בקרוב!",
+      "loading": "טוען תרגילים...",
+      "error": "נכשל בטעינת התרגילים",
+      "empty": "אין תרגילים זמינים עדיין",
+      "retry": "נסה שוב"
     },
     "path_screen": {
       "title": "המסע שלי",
@@ -286,6 +290,41 @@
       "loading": "טוען מאמר...",
       "error": "נכשל בטעינת תוכן המאמר",
       "back": "חזרה למאמרים"
+    }
+  },
+  "independent": {
+    "tabs": {
+      "home": "בית",
+      "path": "המסלול שלי",
+      "gallery": "גלריה",
+      "science": "מאמרים",
+      "settings": "הגדרות"
+    },
+    "home": {
+      "welcome": "ברוך הבא, {{name}}!",
+      "ready_title": "מוכן לאימון",
+      "ready_text": "התחל את מסע האימון שלך היום",
+      "stats": {
+        "points": "סה״כ נקודות",
+        "streak": "רצף ימים",
+        "day": "יום נוכחי"
+      },
+      "quick_actions": {
+        "title": "פעולות מהירות",
+        "start_training": "התחל אימון",
+        "view_progress": "הצג התקדמות",
+        "explore_exercises": "חקור תרגילים"
+      }
+    },
+    "settings": {
+      "profile": "פרופיל",
+      "preferences": "העדפות",
+      "account": "חשבון",
+      "sign_out": "התנתק",
+      "sign_out_confirm": "האם אתה בטוח שברצונך להתנתק?",
+      "independent_user": "משתמש עצמאי",
+      "app_info": "זומי - אימון ראייה",
+      "version": "גרסה 1.0.0"
     }
   }
 }

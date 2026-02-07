@@ -168,7 +168,11 @@
     "library_screen": {
       "title": "Exercise Gallery",
       "construction_title": "Under Construction",
-      "construction_message": "Exciting exercise content coming soon!"
+      "construction_message": "Exciting exercise content coming soon!",
+      "loading": "Loading exercises...",
+      "error": "Failed to load exercises",
+      "empty": "No exercises available yet",
+      "retry": "Retry"
     },
     "path_screen": {
       "title": "My Journey",
@@ -286,6 +290,41 @@
       "loading": "Loading article...",
       "error": "Failed to load article content",
       "back": "Back to Articles"
+    }
+  },
+  "independent": {
+    "tabs": {
+      "home": "Home",
+      "path": "My Path",
+      "gallery": "Gallery",
+      "science": "Science",
+      "settings": "Settings"
+    },
+    "home": {
+      "welcome": "Welcome, {{name}}!",
+      "ready_title": "Ready to Train",
+      "ready_text": "Start your vision training journey today",
+      "stats": {
+        "points": "Total Points",
+        "streak": "Day Streak",
+        "day": "Current Day"
+      },
+      "quick_actions": {
+        "title": "Quick Actions",
+        "start_training": "Start Training",
+        "view_progress": "View Progress",
+        "explore_exercises": "Explore Exercises"
+      }
+    },
+    "settings": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "account": "Account",
+      "sign_out": "Sign Out",
+      "sign_out_confirm": "Are you sure you want to sign out?",
+      "independent_user": "Independent User",
+      "app_info": "Zoomi Vision Training",
+      "version": "Version 1.0.0"
     }
   }
 }

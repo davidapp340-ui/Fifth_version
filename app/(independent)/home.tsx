@@ -1,25 +1,26 @@
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChildSession } from '@/contexts/ChildSessionContext';
+import { useTranslation } from 'react-i18next';
 
 export default function IndependentHomeScreen() {
   const { profile } = useAuth();
   const { child } = useChildSession();
+  const { t } = useTranslation();
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Welcome Back!</Text>
-        <Text style={styles.subtitle}>
-          {profile?.first_name} {profile?.last_name}
+        <Text style={styles.title}>
+          {t('independent.home.welcome', { name: profile?.first_name || '' })}
         </Text>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Your Training Journey</Text>
+          <Text style={styles.cardTitle}>{t('independent.home.ready_title')}</Text>
           <Text style={styles.cardText}>
-            Track your progress, complete exercises, and improve your vision health.
+            {t('independent.home.ready_text')}
           </Text>
         </View>
 
@@ -27,23 +28,23 @@ export default function IndependentHomeScreen() {
           <View style={styles.statsCard}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{child.total_points || 0}</Text>
-              <Text style={styles.statLabel}>Total Points</Text>
+              <Text style={styles.statLabel}>{t('independent.home.stats.points')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{child.current_streak || 0}</Text>
-              <Text style={styles.statLabel}>Day Streak</Text>
+              <Text style={styles.statLabel}>{t('independent.home.stats.streak')}</Text>
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>{child.path_day || 1}</Text>
-              <Text style={styles.statLabel}>Current Day</Text>
+              <Text style={styles.statLabel}>{t('independent.home.stats.day')}</Text>
             </View>
           </View>
         )}
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Quick Actions</Text>
+          <Text style={styles.cardTitle}>{t('independent.home.quick_actions.title')}</Text>
           <Text style={styles.cardText}>
-            Use the tabs below to navigate to your training path, exercise gallery, science articles, or settings.
+            {t('independent.home.quick_actions.explore_exercises')}
           </Text>
         </View>
       </ScrollView>

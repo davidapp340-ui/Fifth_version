@@ -13,7 +13,7 @@ export default function LibraryScreenContent() {
 
   useEffect(() => {
     loadLibrary();
-  }, []);
+  }, [i18n.language]);
 
   const loadLibrary = async () => {
     try {
@@ -23,7 +23,7 @@ export default function LibraryScreenContent() {
       setCategories(data);
     } catch (err) {
       console.error('Failed to load library:', err);
-      setError('Failed to load exercises');
+      setError(t('child_navigation.library_screen.error'));
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export default function LibraryScreenContent() {
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>Loading exercises...</Text>
+          <Text style={styles.loadingText}>{t('child_navigation.library_screen.loading')}</Text>
         </View>
       </View>
     );
@@ -65,7 +65,7 @@ export default function LibraryScreenContent() {
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadLibrary}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t('child_navigation.library_screen.retry')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -81,7 +81,7 @@ export default function LibraryScreenContent() {
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {categories.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No exercises available yet</Text>
+            <Text style={styles.emptyText}>{t('child_navigation.library_screen.empty')}</Text>
           </View>
         ) : (
           categories.map((category) => (

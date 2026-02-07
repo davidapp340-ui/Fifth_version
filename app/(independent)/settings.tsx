@@ -24,12 +24,12 @@ export default function IndependentSettingsScreen() {
 
   const handleSignOut = async () => {
     Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
+      t('independent.settings.sign_out'),
+      t('independent.settings.sign_out_confirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Sign Out',
+          text: t('independent.settings.sign_out'),
           style: 'destructive',
           onPress: async () => {
             setLoading(true);
@@ -38,7 +38,7 @@ export default function IndependentSettingsScreen() {
               router.replace('/');
             } catch (error) {
               console.error('Error signing out:', error);
-              Alert.alert('Error', 'Failed to sign out');
+              Alert.alert(t('common.error'), 'Failed to sign out');
             } finally {
               setLoading(false);
             }
@@ -51,12 +51,12 @@ export default function IndependentSettingsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
+        <Text style={styles.title}>{t('independent.tabs.settings')}</Text>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Profile</Text>
+          <Text style={styles.sectionTitle}>{t('independent.settings.profile')}</Text>
           <View style={styles.profileCard}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
@@ -69,14 +69,14 @@ export default function IndependentSettingsScreen() {
               </Text>
               <Text style={styles.profileEmail}>{profile?.email}</Text>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>Independent User</Text>
+                <Text style={styles.badgeText}>{t('independent.settings.independent_user')}</Text>
               </View>
             </View>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>{t('independent.settings.preferences')}</Text>
 
           <TouchableOpacity style={styles.settingItem} onPress={handleLanguageChange}>
             <View style={styles.settingLeft}>
@@ -84,9 +84,9 @@ export default function IndependentSettingsScreen() {
                 <Globe size={24} color="#F59E0B" />
               </View>
               <View>
-                <Text style={styles.settingTitle}>Language</Text>
+                <Text style={styles.settingTitle}>{t('settings.language.title')}</Text>
                 <Text style={styles.settingSubtitle}>
-                  Current: {i18n.language === 'en' ? 'English' : 'עברית'}
+                  {i18n.language === 'en' ? t('settings.language.current_english') : t('settings.language.current_hebrew')}
                 </Text>
               </View>
             </View>
@@ -94,7 +94,7 @@ export default function IndependentSettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>{t('independent.settings.account')}</Text>
 
           <TouchableOpacity
             style={styles.settingItem}
@@ -110,9 +110,9 @@ export default function IndependentSettingsScreen() {
                 )}
               </View>
               <View>
-                <Text style={[styles.settingTitle, styles.dangerText]}>Sign Out</Text>
+                <Text style={[styles.settingTitle, styles.dangerText]}>{t('independent.settings.sign_out')}</Text>
                 <Text style={styles.settingSubtitle}>
-                  Sign out of your account
+                  {t('independent.settings.sign_out_confirm')}
                 </Text>
               </View>
             </View>
@@ -120,8 +120,8 @@ export default function IndependentSettingsScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Zoomi Vision Training</Text>
-          <Text style={styles.footerSubtext}>Version 1.0.0</Text>
+          <Text style={styles.footerText}>{t('independent.settings.app_info')}</Text>
+          <Text style={styles.footerSubtext}>{t('independent.settings.version')}</Text>
         </View>
       </ScrollView>
     </View>

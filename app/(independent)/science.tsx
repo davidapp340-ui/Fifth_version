@@ -16,7 +16,7 @@ export default function IndependentScienceScreen() {
 
   useEffect(() => {
     loadArticles();
-  }, []);
+  }, [i18n.language]);
 
   const loadArticles = async () => {
     try {
@@ -33,7 +33,7 @@ export default function IndependentScienceScreen() {
       setArticles(data || []);
     } catch (err) {
       console.error('Error loading articles:', err);
-      setError('Failed to load articles');
+      setError(t('science.error'));
     } finally {
       setLoading(false);
     }
@@ -53,10 +53,11 @@ export default function IndependentScienceScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Science</Text>
+          <Text style={styles.title}>{t('science.title')}</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#F59E0B" />
+          <Text style={styles.loadingText}>{t('science.loading')}</Text>
         </View>
       </View>
     );
@@ -66,12 +67,12 @@ export default function IndependentScienceScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Science</Text>
+          <Text style={styles.title}>{t('science.title')}</Text>
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={loadArticles}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t('common.error')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -81,14 +82,13 @@ export default function IndependentScienceScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Science</Text>
-        <Text style={styles.subtitle}>Learn about vision health</Text>
+        <Text style={styles.title}>{t('science.title')}</Text>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {articles.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No articles available yet</Text>
+            <Text style={styles.emptyText}>{t('science.empty')}</Text>
           </View>
         ) : (
           articles.map((article) => (
@@ -148,6 +148,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 16,
   },
   errorContainer: {
     flex: 1,

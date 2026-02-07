@@ -1,7 +1,10 @@
 import { Tabs } from 'expo-router';
 import { Home, TrendingUp, Image, BookOpen, Settings } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function IndependentLayout() {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
@@ -25,35 +28,35 @@ export default function IndependentLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: t('independent.tabs.home'),
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="path"
         options={{
-          title: 'Path',
+          title: t('independent.tabs.path'),
           tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="gallery"
         options={{
-          title: 'Gallery',
+          title: t('independent.tabs.gallery'),
           tabBarIcon: ({ color, size }) => <Image size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="science"
         options={{
-          title: 'Science',
+          title: t('independent.tabs.science'),
           tabBarIcon: ({ color, size }) => <BookOpen size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('independent.tabs.settings'),
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
         }}
       />
