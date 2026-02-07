@@ -531,47 +531,43 @@ export default function AddChildWizard({
       <Modal
         visible={policyModalVisible}
         animationType="slide"
-        transparent={true}
+        transparent={false}
+        presentationStyle="pageSheet"
         onRequestClose={() => setPolicyModalVisible(false)}
       >
-        <View style={styles.policyModalOverlay}>
-          <View style={styles.policyModalContent}>
-            <View style={styles.policyModalHeader}>
-              <Text style={styles.policyModalTitle}>
-                {policyContent?.title || t('parent_home.add_child_wizard.policy_modal.view_policy')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setPolicyModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <X size={24} color="#6B7280" />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={styles.policyScrollView} showsVerticalScrollIndicator={true}>
-              {policyLoading ? (
-                <View style={styles.policyLoadingContainer}>
-                  <ActivityIndicator size="large" color="#6366F1" />
-                  <Text style={styles.policyLoadingText}>
-                    {t('parent_home.add_child_wizard.policy_modal.loading')}
-                  </Text>
-                </View>
-              ) : policyError ? (
-                <Text style={styles.policyErrorText}>{policyError}</Text>
-              ) : (
-                <Text style={styles.policyText}>{policyContent?.content}</Text>
-              )}
-            </ScrollView>
-
+        <View style={styles.policyFullScreenContainer}>
+          <View style={styles.policyFullScreenHeader}>
+            <Text style={styles.policyFullScreenTitle}>
+              {policyContent?.title || t('parent_home.add_child_wizard.policy_modal.view_policy')}
+            </Text>
             <TouchableOpacity
-              style={styles.policyCloseButton}
               onPress={() => setPolicyModalVisible(false)}
+              style={styles.policyCloseIconButton}
             >
-              <Text style={styles.primaryButtonText}>
-                {t('parent_home.add_child_wizard.policy_modal.close_button')}
-              </Text>
+              <X size={28} color="#374151" strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
+
+          {policyLoading ? (
+            <View style={styles.policyLoadingContainer}>
+              <ActivityIndicator size="large" color="#6366F1" />
+              <Text style={styles.policyLoadingText}>
+                {t('parent_home.add_child_wizard.policy_modal.loading')}
+              </Text>
+            </View>
+          ) : policyError ? (
+            <View style={styles.policyErrorContainer}>
+              <Text style={styles.policyErrorText}>{policyError}</Text>
+            </View>
+          ) : (
+            <ScrollView
+              style={styles.policyFullScreenScrollView}
+              contentContainerStyle={styles.policyFullScreenScrollContent}
+              showsVerticalScrollIndicator={true}
+            >
+              <Text style={styles.policyFullScreenText}>{policyContent?.content}</Text>
+            </ScrollView>
+          )}
         </View>
       </Modal>
     </Modal>
@@ -803,67 +799,65 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  policyModalOverlay: {
+  policyFullScreenContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  policyModalContent: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 600,
-    maxHeight: '90%',
-    overflow: 'hidden',
   },
-  policyModalHeader: {
+  policyFullScreenHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
   },
-  policyModalTitle: {
-    fontSize: 20,
+  policyFullScreenTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#111827',
     flex: 1,
+    paddingRight: 16,
   },
-  policyScrollView: {
+  policyCloseIconButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+  },
+  policyFullScreenScrollView: {
     flex: 1,
-    padding: 20,
+  },
+  policyFullScreenScrollContent: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  policyFullScreenText: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: '#374151',
   },
   policyLoadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
+    padding: 40,
   },
   policyLoadingText: {
     marginTop: 16,
-    fontSize: 14,
+    fontSize: 16,
     color: '#6B7280',
   },
-  policyText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: '#374151',
+  policyErrorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
   },
   policyErrorText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#EF4444',
     textAlign: 'center',
-    paddingVertical: 40,
-  },
-  policyCloseButton: {
-    backgroundColor: '#6366F1',
-    padding: 16,
-    margin: 20,
-    marginTop: 0,
-    borderRadius: 8,
-    alignItems: 'center',
   },
 });
