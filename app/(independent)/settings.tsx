@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useChildSession } from '@/contexts/ChildSessionContext';
 import { Globe, LogOut, User } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function IndependentSettingsScreen() {
   const router = useRouter();
   const { profile, signOut } = useAuth();
+  const { clearChildSession } = useChildSession();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
 
@@ -32,10 +34,15 @@ export default function IndependentSettingsScreen() {
           text: t('independent.settings.sign_out'),
           style: 'destructive',
           onPress: async () => {
-            setLoading(true);
             try {
+              setLoading(true);
+
+              await clearChildSession();
+
               await signOut();
-              router.replace('/');
+
+              router.replace('/role-selection');
+
             } catch (error) {
               console.error('Error signing out:', error);
               Alert.alert(t('common.error'), 'Failed to sign out');
