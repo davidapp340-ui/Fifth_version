@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChildSession } from '@/contexts/ChildSessionContext';
-import { Globe, LogOut, User } from 'lucide-react-native';
+import { Globe, LogOut, User, MessageCircle, Globe2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function IndependentSettingsScreen() {
@@ -22,6 +22,28 @@ export default function IndependentSettingsScreen() {
   const handleLanguageChange = async () => {
     const newLang = i18n.language === 'en' ? 'he' : 'en';
     await i18n.changeLanguage(newLang);
+  };
+
+  const handleWhatsAppSupport = () => {
+    const phoneNumber = '972501234567';
+    const message = 'Hi, I need help with Zoomi Fitness';
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert(
+        t('settings.toggle_subscription.error_title'),
+        t('settings.errors.whatsapp_not_installed')
+      );
+    });
+  };
+
+  const handleVisitWebsite = () => {
+    const websiteUrl = 'https://zoomi.fitness';
+    Linking.openURL(websiteUrl).catch(() => {
+      Alert.alert(
+        t('settings.toggle_subscription.error_title'),
+        t('settings.errors.website_failed')
+      );
+    });
   };
 
   const handleSignOut = async () => {
@@ -95,6 +117,34 @@ export default function IndependentSettingsScreen() {
                 <Text style={styles.settingSubtitle}>
                   {i18n.language === 'en' ? t('settings.language.current_english') : t('settings.language.current_hebrew')}
                 </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.sections.support_info')}</Text>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleWhatsAppSupport}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, styles.whatsappIcon]}>
+                <MessageCircle size={24} color="#10B981" />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>{t('settings.support.whatsapp_title')}</Text>
+                <Text style={styles.settingSubtitle}>{t('settings.support.whatsapp_description')}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleVisitWebsite}>
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, styles.websiteIcon]}>
+                <Globe2 size={24} color="#3B82F6" />
+              </View>
+              <View>
+                <Text style={styles.settingTitle}>{t('settings.support.website_title')}</Text>
+                <Text style={styles.settingSubtitle}>{t('settings.support.website_description')}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -249,6 +299,12 @@ const styles = StyleSheet.create({
   },
   dangerIcon: {
     backgroundColor: '#FEE2E2',
+  },
+  whatsappIcon: {
+    backgroundColor: '#D1FAE5',
+  },
+  websiteIcon: {
+    backgroundColor: '#DBEAFE',
   },
   settingTitle: {
     fontSize: 16,
