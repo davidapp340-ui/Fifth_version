@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, I18nManager, Alert, ActivityIndicator, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { Globe, LogOut, Settings as SettingsIcon, MessageCircle, Globe2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +9,6 @@ import { Database } from '@/lib/database.types';
 type Child = Database['public']['Tables']['children']['Row'];
 
 export default function SettingsScreen() {
-  const router = useRouter();
   const { profile, signOut } = useAuth();
   const { t, i18n } = useTranslation();
   const [children, setChildren] = useState<Child[]>([]);
@@ -58,16 +56,12 @@ export default function SettingsScreen() {
     I18nManager.forceRTL(newLang === 'he');
   };
 
-  const handleSignOut = () => {
-    router.replace('/role-selection');
-
-    setTimeout(async () => {
-      try {
-        await signOut();
-      } catch (error) {
-        console.error('Logout cleanup error:', error);
-      }
-    }, 100);
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleChildActions = (child: Child) => {

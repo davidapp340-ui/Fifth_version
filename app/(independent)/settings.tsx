@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Linking } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useChildSession } from '@/contexts/ChildSessionContext';
 import { Globe, LogOut, User, MessageCircle, Globe2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function IndependentSettingsScreen() {
-  const router = useRouter();
   const { profile, signOut } = useAuth();
   const { clearChildSession } = useChildSession();
   const { t, i18n } = useTranslation();

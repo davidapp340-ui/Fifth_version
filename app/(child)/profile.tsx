@@ -1,11 +1,9 @@
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, I18nManager } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useChildSession } from '@/contexts/ChildSessionContext';
 import { Globe, LogOut, User } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function ProfileScreen() {
-  const router = useRouter();
   const { child, clearChildSession } = useChildSession();
   const { t, i18n } = useTranslation();
 
@@ -25,7 +23,6 @@ export default function ProfileScreen() {
 
   const handleSignOut = async () => {
     await clearChildSession();
-    router.replace('/role-selection');
   };
 
   return (

@@ -1,10 +1,30 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ChildSessionProvider } from '@/contexts/ChildSessionContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { ChildSessionProvider, useChildSession } from '@/contexts/ChildSessionContext';
 import '@/lib/i18n';
+
+function AuthGuard() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { profile, loading: authLoading } = useAuth();
+  const { child, loading: childLoading } = useChildSession();
+
+  useEffect(() => {
+    if (authLoading || childLoading) return;
+
+    const isAuthenticated = profile !== null || child !== null;
+    const isOnAuthRoute = pathname === '/' || pathname === '/role-selection' || pathname === '/parent-auth' || pathname === '/child-login';
+
+    if (!isAuthenticated && !isOnAuthRoute) {
+      router.replace('/role-selection');
+    }
+  }, [profile, child, authLoading, childLoading, pathname, router]);
+
+  return null;
+}
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -12,6 +32,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ChildSessionProvider>
+        <AuthGuard />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="role-selection" />
