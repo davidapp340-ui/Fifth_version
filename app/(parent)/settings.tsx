@@ -18,12 +18,8 @@ export default function SettingsScreen() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!profile) {
-      router.replace('/role-selection');
-    } else {
-      loadChildren();
-    }
-  }, [profile]);
+    loadChildren();
+  }, []);
 
   const loadChildren = async () => {
     try {
@@ -62,8 +58,16 @@ export default function SettingsScreen() {
     I18nManager.forceRTL(newLang === 'he');
   };
 
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = () => {
+    router.replace('/role-selection');
+
+    setTimeout(async () => {
+      try {
+        await signOut();
+      } catch (error) {
+        console.error('Logout cleanup error:', error);
+      }
+    }, 100);
   };
 
   const handleChildActions = (child: Child) => {
@@ -193,8 +197,6 @@ export default function SettingsScreen() {
       );
     });
   };
-
-  if (!profile) return null;
 
   return (
     <View style={styles.container}>
