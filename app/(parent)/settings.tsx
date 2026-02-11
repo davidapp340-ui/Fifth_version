@@ -18,7 +18,9 @@ export default function SettingsScreen() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile) {
+    if (!profile) {
+      router.replace('/role-selection');
+    } else {
       loadChildren();
     }
   }, [profile]);
@@ -191,6 +193,8 @@ export default function SettingsScreen() {
       );
     });
   };
+
+  if (!profile) return null;
 
   return (
     <View style={styles.container}>

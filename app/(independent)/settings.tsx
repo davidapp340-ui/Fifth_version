@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +12,12 @@ export default function IndependentSettingsScreen() {
   const { clearChildSession } = useChildSession();
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!profile) {
+      router.replace('/role-selection');
+    }
+  }, [profile]);
 
   const getInitials = (firstName: string, lastName: string): string => {
     const firstInitial = firstName?.charAt(0)?.toUpperCase() || '';
@@ -58,11 +64,8 @@ export default function IndependentSettingsScreen() {
           onPress: async () => {
             try {
               setLoading(true);
-
               await clearChildSession();
-
               await signOut();
-
             } catch (error) {
               console.error('Error signing out:', error);
               Alert.alert(t('common.error'), 'Failed to sign out');
@@ -74,6 +77,8 @@ export default function IndependentSettingsScreen() {
       ]
     );
   };
+
+  if (!profile) return null;
 
   return (
     <View style={styles.container}>
