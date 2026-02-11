@@ -55,19 +55,15 @@ export default function IndependentSettingsScreen() {
         {
           text: t('independent.settings.sign_out'),
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             setLoading(true);
-
-            router.replace('/role-selection');
-
-            setTimeout(async () => {
-              try {
-                await clearChildSession();
-                await signOut();
-              } catch (error) {
-                console.error('Logout cleanup error:', error);
-              }
-            }, 100);
+            try {
+              await clearChildSession();
+              await signOut();
+            } catch (error) {
+              console.error('Logout error:', error);
+              setLoading(false);
+            }
           },
         },
       ]
