@@ -40,7 +40,7 @@ export default function IndependentScienceScreen() {
   };
 
   const handleArticlePress = (articleId: string) => {
-    router.push(`/(parent)/article/${articleId}` as any);
+    router.push(`/(independent)/article/${articleId}` as any);
   };
 
   const getLocalizedField = (article: Article, field: 'title' | 'subtitle' | 'category') => {
