@@ -62,7 +62,6 @@ export default function SettingsScreen() {
 
   const handleSignOut = async () => {
     await signOut();
-    router.replace('/role-selection');
   };
 
   const handleChildActions = (child: Child) => {

@@ -63,8 +63,6 @@ export default function IndependentSettingsScreen() {
 
               await signOut();
 
-              router.replace('/role-selection');
-
             } catch (error) {
               console.error('Error signing out:', error);
               Alert.alert(t('common.error'), 'Failed to sign out');
